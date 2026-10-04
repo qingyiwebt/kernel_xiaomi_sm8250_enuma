@@ -178,6 +178,17 @@ if [ $KSU_ENABLE -eq 1 ]; then
             "$ksu_sucompat_source" > "$ksu_sucompat_source.tmp"
         mv "$ksu_sucompat_source.tmp" "$ksu_sucompat_source"
     fi
+    if ! grep -q 'strncpy_from_user_nofault' include/linux/uaccess.h; then
+        # 4.19 provides the same no-pagefault string copy under the old name.
+        for ksu_string_source in \
+            drivers/kernelsu/feature/sucompat.c \
+            drivers/kernelsu/runtime/ksud_integration.c \
+            drivers/kernelsu/sulog/event.c; do
+            awk '{ gsub(/strncpy_from_user_nofault/, "strncpy_from_unsafe_user"); print }' \
+                "$ksu_string_source" > "$ksu_string_source.tmp"
+            mv "$ksu_string_source.tmp" "$ksu_string_source"
+        done
+    fi
 else
     echo "KSU is disabled"
 fi
