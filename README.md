@@ -1,6 +1,6 @@
 [☕Buy me a coffee](https://ko-fi.com/strawing)
 # Notice
-For SukiSU users: Please use [SukiSU Manager 3.2.0](https://github.com/SukiSU-Ultra/SukiSU-Ultra/releases/tag/v3.2.0), 4.0 and above are not supported yet of the SukiSU version in this kernel.
+For SukiSU users: Please use [SukiSU Manager 4.2.0](https://github.com/SukiSU-Ultra/SukiSU-Ultra/releases/tag/v4.2.0).
 
 # About this repo
 
@@ -14,9 +14,9 @@ Originally this repo (`android12-stable-mod` or `android14-stable-mod` branch) i
 - [@CwithW](https://github.com/CwithW/) for the USB fixes in [PR #61](https://github.com/AstideLabs/android_kernel_xiaomi_sm8250/pull/61) and [PR #62](https://github.com/AstideLabs/android_kernel_xiaomi_sm8250/pull/62).
 - [AstideLabs/android_kernel_xiaomi_sm8250](https://github.com/AstideLabs/android_kernel_xiaomi_sm8250) for the source repository and USB fixes.
 
-The main purpose of maintaining and building this kernel is to fix [this battery stuck at 1% problem](https://github.com/liyafe1997/Xiaomi-fix-battery-one-percent), and provide [SukiSU](https://github.com/ShirkNeko/SukiSU-Ultra)(A KernelSU fork with KPM support) & [SUSFS](https://github.com/sidex15/susfs4ksu-module) integrated pre-built image(flashable anykernel3 zip). Also provides a more intuitive and easy-to-use build script and build guide that allow you to try to build by yourself.
+The main purpose of maintaining and building this kernel is to fix [this battery stuck at 1% problem](https://github.com/liyafe1997/Xiaomi-fix-battery-one-percent), and provide [SukiSU](https://github.com/SukiSU-Ultra/SukiSU-Ultra) (a KernelSU fork with KPM support) as an integrated pre-built image (flashable AnyKernel3 zip). [SUSFS](https://github.com/sidex15/susfs4ksu-module) can be installed separately as a module. Also provides a more intuitive and easy-to-use build script and build guide that allow you to try to build by yourself.
 
-For using the SukiSU, you can install the SukiSU manager APK from [SukiSU Github Release](https://github.com/ShirkNeko/SukiSU-Ultra/releases). For the SUSFS module see [susfs4ksu-module Gihub Release](https://github.com/sidex15/susfs4ksu-module/releases).
+For using the SukiSU, you can install the SukiSU manager APK from [SukiSU Github Release](https://github.com/SukiSU-Ultra/SukiSU-Ultra/releases). For the SUSFS module see [susfs4ksu-module Gihub Release](https://github.com/sidex15/susfs4ksu-module/releases).
 
 (The devices affected by the "1% battery bug" are: alioth, apollo, lmi, thyme, umi, pipa. Because they all use the PM8150, aka Qualcomm fuel gauge GEN4. For the other devices are not affected by that bug, you can use this kernel for KernelSU purpose, as a replacement of the orginal stock kernel. Also, as the people tested, this kernel NoKernelSU version is good for applying [APatch](https://github.com/bmax121/APatch)).
 

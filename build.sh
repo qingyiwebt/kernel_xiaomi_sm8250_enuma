@@ -126,7 +126,7 @@ for arg in "$@"; do
     case "$arg" in
         ksu)
             KSU_ENABLE=1
-            KSU_ZIP_STR=SukiSU-SUSFS
+            KSU_ZIP_STR=SukiSU
             ;;
         aosp|miui)
             TARGET_OS="$arg"
@@ -139,7 +139,7 @@ echo "TARGET_DEVICE: $TARGET_DEVICE"
 
 if [ $KSU_ENABLE -eq 1 ]; then
     echo "KSU is enabled"
-    curl -LSs "https://github.com/liyafe1997/SukiSU-Ultra/raw/4ff14cf0051d04209c4abd5027d99d8e7780ef5b/kernel/setup.sh" | bash -s f4863b20cc8dc0f8cc67418980f022e43014b598
+    curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/85eb4a95b8a61d756ecf53b9c5785e48e1b15039/kernel/setup.sh" | bash -s 85eb4a95b8a61d756ecf53b9c5785e48e1b15039
 else
     echo "KSU is disabled"
 fi
@@ -167,23 +167,9 @@ if [ "$TARGET_OS" == "aosp" ] || [ "$TARGET_OS" == "both" ]; then
 
 if [ $KSU_ENABLE -eq 1 ]; then
     scripts/config --file out/.config \
+    -e KPROBES \
     -e KSU \
-    -e KSU_MANUAL_HOOK \
-    -e KSU_SUSFS_HAS_MAGIC_MOUNT \
-    -d KSU_SUSFS_SUS_PATH \
-    -e KSU_SUSFS_SUS_MOUNT \
-    -e KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT \
-    -e KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT \
-    -e KSU_SUSFS_SUS_KSTAT \
-    -d KSU_SUSFS_SUS_OVERLAYFS \
-    -e KSU_SUSFS_TRY_UMOUNT \
-    -e KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT \
-    -e KSU_SUSFS_SPOOF_UNAME \
-    -e KSU_SUSFS_ENABLE_LOG \
-    -e KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS \
-    -e KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG \
-    -d KSU_SUSFS_OPEN_REDIRECT \
-    -d KSU_SUSFS_SUS_SU \
+    -e KSU_MANUAL_SU \
     -e KPM
 else
     scripts/config --file out/.config -d KSU
@@ -209,7 +195,7 @@ fi
 # Patch for SukiSU KPM support. 
     if [ $KSU_ENABLE -eq 1 ]; then
         cd out/arch/arm64/boot/
-        wget https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/download/0.12.0/patch_linux
+        wget https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/download/0.13.0/patch_linux
         chmod +x patch_linux
         ./patch_linux
         rm Image
@@ -308,23 +294,9 @@ sed -i 's/\/\/39 01 00 00 11 00 03 51 03 FF/39 01 00 00 11 00 03 51 03 FF/g' ${d
 
 if [ $KSU_ENABLE -eq 1 ]; then
     scripts/config --file out/.config \
+    -e KPROBES \
     -e KSU \
-    -e KSU_MANUAL_HOOK \
-    -e KSU_SUSFS_HAS_MAGIC_MOUNT \
-    -d KSU_SUSFS_SUS_PATH \
-    -e KSU_SUSFS_SUS_MOUNT \
-    -e KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT \
-    -e KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT \
-    -e KSU_SUSFS_SUS_KSTAT \
-    -d KSU_SUSFS_SUS_OVERLAYFS \
-    -e KSU_SUSFS_TRY_UMOUNT \
-    -e KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT \
-    -e KSU_SUSFS_SPOOF_UNAME \
-    -e KSU_SUSFS_ENABLE_LOG \
-    -e KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS \
-    -e KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG \
-    -d KSU_SUSFS_OPEN_REDIRECT \
-    -d KSU_SUSFS_SUS_SU \
+    -e KSU_MANUAL_SU \
     -e KPM
 else
     scripts/config --file out/.config -d KSU
@@ -385,7 +357,7 @@ scripts/config --file out/.config \
 # Patch for SukiSU KPM support. 
     if [ $KSU_ENABLE -eq 1 ]; then
         cd out/arch/arm64/boot/
-        wget https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/download/0.12.0/patch_linux
+        wget https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/download/0.13.0/patch_linux
         chmod +x patch_linux
         ./patch_linux
         rm Image
