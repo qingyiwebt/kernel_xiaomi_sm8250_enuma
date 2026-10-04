@@ -189,6 +189,13 @@ if [ $KSU_ENABLE -eq 1 ]; then
             mv "$ksu_string_source.tmp" "$ksu_string_source"
         done
     fi
+    if ! grep -q 'copy_to_kernel_nofault' include/linux/uaccess.h; then
+        # 4.19 names the no-pagefault kernel write helper probe_kernel_write.
+        ksu_patch_memory_source=drivers/kernelsu/hook/arm64/patch_memory.c
+        awk '{ gsub(/copy_to_kernel_nofault/, "probe_kernel_write"); print }' \
+            "$ksu_patch_memory_source" > "$ksu_patch_memory_source.tmp"
+        mv "$ksu_patch_memory_source.tmp" "$ksu_patch_memory_source"
+    fi
 else
     echo "KSU is disabled"
 fi
