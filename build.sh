@@ -196,6 +196,12 @@ if [ $KSU_ENABLE -eq 1 ]; then
             "$ksu_patch_memory_source" > "$ksu_patch_memory_source.tmp"
         mv "$ksu_patch_memory_source.tmp" "$ksu_patch_memory_source"
     fi
+    # Preserve file wrapper operations and SELinux labels on the 4.19 API.
+    ksu_wrapper_patch="$KERNEL_DIR/patches/sukisu-4.2.0-file-wrapper-4.19.patch"
+    if ! git -C KernelSU apply --reverse --check "$ksu_wrapper_patch" 2>/dev/null; then
+        git -C KernelSU apply --check "$ksu_wrapper_patch"
+        git -C KernelSU apply "$ksu_wrapper_patch"
+    fi
 else
     echo "KSU is disabled"
 fi
