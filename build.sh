@@ -157,6 +157,20 @@ if [ $KSU_ENABLE -eq 1 ]; then
         }' "$kpm_source" > "$kpm_source.tmp"
         mv "$kpm_source.tmp" "$kpm_source"
     fi
+    ksu_init_source=drivers/kernelsu/core/init.c
+    if [ -f "$ksu_init_source" ] && ! grep -q '^#ifndef MODULE_IMPORT_NS' "$ksu_init_source"; then
+        # Kernels without symbol namespaces do not need import metadata.
+        awk '
+        {
+            print
+            if ($0 == "#include <linux/module.h>") {
+                print "#ifndef MODULE_IMPORT_NS"
+                print "#define MODULE_IMPORT_NS(ns)"
+                print "#endif"
+            }
+        }' "$ksu_init_source" > "$ksu_init_source.tmp"
+        mv "$ksu_init_source.tmp" "$ksu_init_source"
+    fi
 else
     echo "KSU is disabled"
 fi
