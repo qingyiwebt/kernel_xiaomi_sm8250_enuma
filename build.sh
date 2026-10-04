@@ -207,6 +207,11 @@ if [ $KSU_ENABLE -eq 1 ]; then
         git -C KernelSU apply --check "$ksu_namespace_patch"
         git -C KernelSU apply "$ksu_namespace_patch"
     fi
+    ksu_observer_patch="$KERNEL_DIR/patches/sukisu-4.2.0-fsnotify-4.19.patch"
+    if ! git -C KernelSU apply --reverse --check "$ksu_observer_patch" 2>/dev/null; then
+        git -C KernelSU apply --check "$ksu_observer_patch"
+        git -C KernelSU apply "$ksu_observer_patch"
+    fi
 else
     echo "KSU is disabled"
 fi

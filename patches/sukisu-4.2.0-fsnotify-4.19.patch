@@ -1,0 +1,47 @@
+diff --git a/kernel/manager/pkg_observer.c b/kernel/manager/pkg_observer.c
+index 512b992..bc18b01 100644
+--- a/kernel/manager/pkg_observer.c
++++ b/kernel/manager/pkg_observer.c
+@@ -6,6 +6,7 @@
+ #include <linux/slab.h>
+ #include <linux/rculist.h>
+ #include <linux/version.h>
++#include <linux/string.h>
+ #include "klog.h" // IWYU pragma: keep
+ #include "manager/throne_tracker.h"
+ 
+@@ -35,8 +36,27 @@ static int ksu_handle_inode_event(struct fsnotify_mark *mark, u32 mask, struct i
+     return 0;
+ }
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
++static int ksu_handle_event(struct fsnotify_group *group, struct inode *inode,
++                            u32 mask, const void *data, int data_type,
++                            const unsigned char *file_name, u32 cookie,
++                            struct fsnotify_iter_info *iter_info)
++{
++    if (!file_name)
++        return 0;
++
++    /* 4.19 supplies a NUL-terminated name instead of a qstr. */
++    struct qstr name = QSTR_INIT((const char *)file_name, strlen((const char *)file_name));
++    return ksu_handle_inode_event(NULL, mask, inode, NULL, &name, cookie);
++}
++#endif
++
+ static const struct fsnotify_ops ksu_ops = {
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
++    .handle_event = ksu_handle_event,
++#else
+     .handle_inode_event = ksu_handle_inode_event,
++#endif
+ };
+ 
+ static int add_mark_on_inode(struct inode *inode, u32 mask, struct fsnotify_mark **out)
+@@ -121,4 +141,4 @@ void __exit ksu_observer_exit(void)
+     unwatch_one_dir(&g_watch);
+     fsnotify_put_group(g);
+     pr_info("observer exit done\n");
+-}
+\ No newline at end of file
++}
