@@ -1,0 +1,79 @@
+diff --git a/kernel/policy/allowlist.c b/kernel/policy/allowlist.c
+index 879d58b..20d344f 100644
+--- a/kernel/policy/allowlist.c
++++ b/kernel/policy/allowlist.c
+@@ -3,6 +3,7 @@
+ #include <linux/rculist.h>
+ #include <linux/mutex.h>
+ #include <linux/task_work.h>
++#include <linux/sched/task.h>
+ #include <linux/capability.h>
+ #include <linux/compiler.h>
+ #include <linux/fs.h>
+@@ -25,6 +26,15 @@
+ #include "manager/manager_identity.h"
+ #include "infra/su_mount_ns.h"
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
++/* The legacy bool requests notification on return to userspace. */
++#define TWA_RESUME true
++#endif
++
++#ifndef fallthrough
++#define fallthrough __attribute__((__fallthrough__))
++#endif
++
+ #define FILE_MAGIC 0x7f4b5355 // ' KSU', u32
+ #define FILE_FORMAT_VERSION 4 // u32
+ 
+diff --git a/kernel/policy/app_profile.c b/kernel/policy/app_profile.c
+index 0ca885c..e33f5ea 100644
+--- a/kernel/policy/app_profile.c
++++ b/kernel/policy/app_profile.c
+@@ -66,7 +66,9 @@ void setup_groups(struct root_profile *profile, struct cred *cred)
+     put_group_info(group_info);
+ }
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
+ void seccomp_filter_release(struct task_struct *tsk);
++#endif
+ 
+ // https://cs.android.com/android/_/android/kernel/common/+/5346453405bf12d7ed6003f45dd47b71744fe1be
+ // Some 15-6.6 kernel have this backport while others don't have, e.g. Pixel 10
+@@ -103,7 +105,9 @@ static void disable_seccomp(void)
+ 
+     current->seccomp.mode = 0;
+     current->seccomp.filter = NULL;
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
+     atomic_set(&current->seccomp.filter_count, 0);
++#endif
+     spin_unlock_irq(&current->sighand->siglock);
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0)
+@@ -120,7 +124,11 @@ static void disable_seccomp(void)
+     fake->sighand = NULL;
+ #endif
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
++    put_seccomp_filter(fake);
++#else
+     seccomp_filter_release(fake);
++#endif
+     kfree(fake);
+ }
+ 
+diff --git a/kernel/supercall/supercall.c b/kernel/supercall/supercall.c
+index 1610191..fa87268 100644
+--- a/kernel/supercall/supercall.c
++++ b/kernel/supercall/supercall.c
+@@ -11,6 +11,10 @@
+ #include <linux/uaccess.h>
+ #include <linux/version.h>
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
++#define TWA_RESUME true
++#endif
++
+ #include "uapi/supercall.h"
+ #include "kpm/kpm.h"
+ #include "supercall/internal.h"

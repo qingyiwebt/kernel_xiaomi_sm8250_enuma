@@ -212,6 +212,11 @@ if [ $KSU_ENABLE -eq 1 ]; then
         git -C KernelSU apply --check "$ksu_observer_patch"
         git -C KernelSU apply "$ksu_observer_patch"
     fi
+    ksu_policy_patch="$KERNEL_DIR/patches/sukisu-4.2.0-policy-task-work-4.19.patch"
+    if ! git -C KernelSU apply --reverse --check "$ksu_policy_patch" 2>/dev/null; then
+        git -C KernelSU apply --check "$ksu_policy_patch"
+        git -C KernelSU apply "$ksu_policy_patch"
+    fi
 else
     echo "KSU is disabled"
 fi
