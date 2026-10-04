@@ -1,0 +1,74 @@
+diff --git a/kernel/infra/seccomp_cache.c b/kernel/infra/seccomp_cache.c
+index a9d2b63..ed39c78 100644
+--- a/kernel/infra/seccomp_cache.c
++++ b/kernel/infra/seccomp_cache.c
+@@ -8,6 +8,7 @@
+ #include "klog.h" // IWYU pragma: keep
+ #include "infra/seccomp_cache.h"
+ 
++#ifdef SECCOMP_ARCH_NATIVE_NR
+ struct action_cache {
+     DECLARE_BITMAP(allow_native, SECCOMP_ARCH_NATIVE_NR);
+ #ifdef SECCOMP_ARCH_COMPAT
+@@ -63,3 +64,13 @@ void ksu_seccomp_allow_cache(struct seccomp_filter *filter, int nr)
+     }
+ #endif
+ }
++#else
++/* 4.19 has no seccomp action cache; never touch its private filter layout. */
++void ksu_seccomp_clear_cache(struct seccomp_filter *filter, int nr)
++{
++}
++
++void ksu_seccomp_allow_cache(struct seccomp_filter *filter, int nr)
++{
++}
++#endif
+diff --git a/kernel/infra/su_mount_ns.c b/kernel/infra/su_mount_ns.c
+index 0d45921..3e1dc09 100644
+--- a/kernel/infra/su_mount_ns.c
++++ b/kernel/infra/su_mount_ns.c
+@@ -13,7 +13,12 @@
+ #include <linux/syscalls.h>
+ #include <linux/task_work.h>
+ #include <linux/version.h>
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
++#include <uapi/linux/fs.h>
++#include <linux/uaccess.h>
++#else
+ #include <uapi/linux/mount.h>
++#endif
+ 
+ #include "arch.h"
+ #include "klog.h" // IWYU pragma: keep
+@@ -91,7 +96,11 @@ try_setns:
+         goto out;
+     }
+     struct path ns_path;
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
++    long ret = PTR_ERR_OR_ZERO(ns_get_path(&ns_path, pid1_task, &mntns_operations));
++#else
+     long ret = ns_get_path(&ns_path, pid1_task, &mntns_operations);
++#endif
+     put_task_struct(pid1_task);
+     if (ret) {
+         pr_warn("failed get path for init mount namespace: %ld\n", ret);
+@@ -146,10 +155,18 @@ static void ksu_mnt_ns_individual(void)
+     }
+ 
+     // make root mount private
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
++    /* do_mount uses a user pathname on 4.19; restore addr_limit afterward. */
++    mm_segment_t old_fs = get_fs();
++    set_fs(KERNEL_DS);
++    int pm_ret = (int)do_mount(NULL, (const char __user *)"/", NULL, MS_PRIVATE | MS_REC, NULL);
++    set_fs(old_fs);
++#else
+     struct path root_path;
+     get_fs_root(current->fs, &root_path);
+     int pm_ret = path_mount(NULL, &root_path, NULL, MS_PRIVATE | MS_REC, NULL);
+     path_put(&root_path);
++#endif
+ 
+     if (pm_ret < 0) {
+         pr_err("failed to make root private, err: %d\n", pm_ret);

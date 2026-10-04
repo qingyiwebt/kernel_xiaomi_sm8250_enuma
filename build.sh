@@ -202,6 +202,11 @@ if [ $KSU_ENABLE -eq 1 ]; then
         git -C KernelSU apply --check "$ksu_wrapper_patch"
         git -C KernelSU apply "$ksu_wrapper_patch"
     fi
+    ksu_namespace_patch="$KERNEL_DIR/patches/sukisu-4.2.0-seccomp-mount-4.19.patch"
+    if ! git -C KernelSU apply --reverse --check "$ksu_namespace_patch" 2>/dev/null; then
+        git -C KernelSU apply --check "$ksu_namespace_patch"
+        git -C KernelSU apply "$ksu_namespace_patch"
+    fi
 else
     echo "KSU is disabled"
 fi
