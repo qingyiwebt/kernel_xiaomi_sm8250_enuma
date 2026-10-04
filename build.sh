@@ -140,6 +140,23 @@ echo "TARGET_DEVICE: $TARGET_DEVICE"
 if [ $KSU_ENABLE -eq 1 ]; then
     echo "KSU is enabled"
     curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/85eb4a95b8a61d756ecf53b9c5785e48e1b15039/kernel/setup.sh" | bash -s 85eb4a95b8a61d756ecf53b9c5785e48e1b15039
+    kpm_source=drivers/kernelsu/kpm/kpm.c
+    if [ -f "$kpm_source" ] && ! grep -q 'ksu_access_ok' "$kpm_source"; then
+        # SukiSU v4.2.0 uses the newer two-argument access_ok API.
+        awk '
+        {
+            gsub(/access_ok\(/, "ksu_access_ok(")
+            if ($0 == "#include \"kpm.h\"") {
+                print "#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)"
+                print "#define ksu_access_ok(addr, size) access_ok(0, addr, size)"
+                print "#else"
+                print "#define ksu_access_ok(addr, size) access_ok(addr, size)"
+                print "#endif"
+            }
+            print
+        }' "$kpm_source" > "$kpm_source.tmp"
+        mv "$kpm_source.tmp" "$kpm_source"
+    fi
 else
     echo "KSU is disabled"
 fi
