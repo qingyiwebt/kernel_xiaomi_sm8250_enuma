@@ -56,10 +56,11 @@ jobs:
           ccache -M 10G
 
       - name: Restore ccache
+        id: ccache
         uses: actions/cache/restore@v4
         with:
           path: ~/.cache/ccache_mikernel
-          key: ${{ runner.os }}-kernel-ccache-${{ matrix.device }}-${{ matrix.ksu && 'ksu' || 'noksu' }}-${{ github.run_id }}
+          key: ${{ runner.os }}-kernel-ccache-${{ matrix.device }}-${{ matrix.ksu && 'ksu' || 'noksu' }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             ${{ runner.os }}-kernel-ccache-${{ matrix.device }}-${{ matrix.ksu && 'ksu' || 'noksu' }}-
             ${{ runner.os }}-kernel-ccache-${{ matrix.device }}-
@@ -73,6 +74,7 @@ jobs:
           tar -zxvf Clang-16.0.6-20260807.tar.gz
 
       - name: Run Build Script
+        id: build
         run: |
           chmod +x build.sh
 
@@ -83,6 +85,13 @@ jobs:
 
           echo "Executing command: ./build.sh $ARGS"
           ./build.sh $ARGS
+
+      - name: Save ccache (including failed builds)
+        if: ${{ always() && steps.build.outcome != 'skipped' && steps.ccache.outputs.cache-primary-key != '' && steps.ccache.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cache/ccache_mikernel
+          key: ${{ steps.ccache.outputs.cache-primary-key }}
 
       - name: Upload Kernel Artifacts
         uses: actions/upload-artifact@v4

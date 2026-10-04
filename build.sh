@@ -171,6 +171,13 @@ if [ $KSU_ENABLE -eq 1 ]; then
         }' "$ksu_init_source" > "$ksu_init_source.tmp"
         mv "$ksu_init_source.tmp" "$ksu_init_source"
     fi
+    if [ ! -f include/linux/pgtable.h ]; then
+        # Older kernels expose page table helpers through the arch header.
+        ksu_sucompat_source=drivers/kernelsu/feature/sucompat.c
+        awk '{ sub(/#include <linux\/pgtable.h>/, "#include <asm/pgtable.h>"); print }' \
+            "$ksu_sucompat_source" > "$ksu_sucompat_source.tmp"
+        mv "$ksu_sucompat_source.tmp" "$ksu_sucompat_source"
+    fi
 else
     echo "KSU is disabled"
 fi
